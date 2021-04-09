@@ -1,41 +1,4 @@
-package com.yo1000.api_pagination
-
-import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.runApplication
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.PageImpl
-import org.springframework.data.domain.Pageable
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
-
-@SpringBootApplication
-class ApiPaginationApplication
-
-fun main(args: Array<String>) {
-	runApplication<ApiPaginationApplication>(*args)
-}
-
-@RestController
-@RequestMapping("/member")
-class MemberRestController {
-	@GetMapping
-	fun get(pageable: Pageable): Page<Member> {
-		val pagedMembers = Member.all.subList(
-			pageable.offset.toInt(),
-			(pageable.offset.toInt() + pageable.pageSize).let {
-				if (it < Member.all.size) it
-				else Member.all.size
-			}
-		)
-
-		return PageImpl(
-				pagedMembers,
-				pageable,
-				pagedMembers.size.toLong()
-		)
-	}
-}
+package com.yo1000.api_pagination_with_camel
 
 class Member(
 		val name: String
@@ -434,7 +397,7 @@ class Member(
 			"ロビン",
 			"ロボ",
 		).map {
-			Member(it)
+            Member(it)
 		}
 	}
 }
