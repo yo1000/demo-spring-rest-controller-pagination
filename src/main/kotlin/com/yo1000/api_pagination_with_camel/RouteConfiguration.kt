@@ -9,29 +9,80 @@ import org.springframework.data.domain.Pageable
 @Configuration
 class RouteConfiguration {
     @Bean
-    fun pagedMemberListRoute(): RouteBuilder {
+    fun pagedMemberFromListRoute(): RouteBuilder {
         return object : RouteBuilder() {
             override fun configure() {
-                from("direct://pagedMemberList")
+                from("direct://pagedMemberFromList").process { exchange ->
+                    // Get Params
+                    val pageable: Pageable = exchange.message.getBody(Pageable::class.java)
+
+                    // Process
+                    val pagedMembers = Member.all.subList(
+                        pageable.offset.toInt(),
+                        (pageable.offset.toInt() + pageable.pageSize).let {
+                            if (it < Member.all.size) it
+                            else Member.all.size
+                        }
+                    )
+
+                    // Set Result
+                    exchange.message.body = PageImpl(
+                        pagedMembers,
+                        pageable,
+                        Member.all.size.toLong()
+                    )
+                }
+            }
+        }
+    }
+
+    @Bean
+    fun pagedMemberFromDbRoute(): RouteBuilder {
+        return object : RouteBuilder() {
+            override fun configure() {
+                from("direct://pagedMemberFromDb")
                     .process { exchange ->
-                        // Get Params
-                        val pageable: Pageable = exchange.message.getBody(Pageable::class.java)
+                        val pageable: Pageable = exchange.message.body as Pageable
+                        exchange.message.headers["pageable"] = pageable
+                        exchange.message.headers["offset"] = pageable.offset
+                        exchange.message.headers["pageSize"] = pageable.pageSize
+                    }
+                    .to("""sql://
+                        SELECT
+                          COUNT(name) AS total
+                        FROM
+                          member
+                    """.replace(Regex("\\s+"), " "))
+                    .process { exchange ->
+                        val results: List<Map<String, Any>> = exchange.message.body as List<Map<String, Any>>
+                        exchange.message.headers["total"] = results.first()["TOTAL"] as Long
+                    }
+                    .to("""sql://
+                        SELECT
+                          name
+                        FROM
+                          member
+                        LIMIT
+                            :#offset
+                        OFFSET
+                            :#pageSize
+                    """.replace(Regex("\\s+"), " "))
+                    .process { exchange ->
+                        val pageable: Pageable = exchange.message.headers["pageable"] as Pageable
+                        val total: Long = exchange.message.headers["total"] as Long
+                        val results: List<Map<String, Any>> = exchange.message.body as List<Map<String, Any>>
 
-                        // Process
-                        val pagedMembers = Member.all.subList(
-                            pageable.offset.toInt(),
-                            (pageable.offset.toInt() + pageable.pageSize).let {
-                                if (it < Member.all.size) it
-                                else Member.all.size
-                            }
-                        )
-
-                        // Set Result
-                        exchange.message.body = PageImpl(
-                            pagedMembers,
-                            pageable,
-                            pagedMembers.size.toLong()
-                        )
+                        results.map {
+                            Member(
+                                name = it["NAME"] as String? ?: ""
+                            )
+                        }.let {
+                            exchange.message.body = PageImpl(
+                                it,
+                                pageable,
+                                total
+                            )
+                        }
                     }
             }
         }

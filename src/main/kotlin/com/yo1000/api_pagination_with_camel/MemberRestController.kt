@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -15,12 +16,23 @@ class MemberRestController(
 	private val camelContext: CamelContext
 ) {
 	@GetMapping
-	fun get(pageable: Pageable): Page<Member> {
+	fun get(
+		@RequestParam("src", defaultValue = "list")
+		src: String,
+		pageable: Pageable
+	): Page<Member> {
 		val producerTemplate: ProducerTemplate = camelContext.createProducerTemplate()
 
-		val exchange = producerTemplate.send("direct://pagedMemberList", DefaultExchange(camelContext).also {
-			it.message.body = pageable
-		})
+		val exchange = producerTemplate.send(
+			when (src) {
+				"list" -> "direct://pagedMemberFromList"
+				"db" -> "direct://pagedMemberFromDb"
+				else -> throw IllegalStateException("src value is unsupported")
+			},
+			DefaultExchange(camelContext).also {
+				it.message.body = pageable
+			}
+		)
 
 		return exchange.message.getBody(Page::class.java) as Page<Member>
 	}
