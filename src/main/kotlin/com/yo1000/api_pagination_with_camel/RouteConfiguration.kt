@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
+import java.lang.IllegalArgumentException
 
 @Configuration
 class RouteConfiguration {
@@ -15,7 +16,8 @@ class RouteConfiguration {
             override fun configure() {
                 from("direct://pagedMemberFromList").process { exchange ->
                     // Get Params
-                    val pageable: Pageable = exchange.message.getBody(Pageable::class.java)
+                    val pageable: Pageable = exchange.message.getHeaderFirst(Pageable::class)
+                        ?: throw IllegalArgumentException("Pageable is missing")
 
                     // Process
                     val pagedMembers = Member.all.subList(
@@ -43,8 +45,9 @@ class RouteConfiguration {
             override fun configure() {
                 from("direct://pagedMemberFromDb")
                     .process { exchange ->
-                        val pageable: Pageable = exchange.message.body as Pageable
-                        exchange.message.headers["pageable"] = pageable
+                        val pageable: Pageable = exchange.message.getHeaderFirst(Pageable::class)
+                            ?: throw IllegalArgumentException("Pageable is missing")
+
                         exchange.message.headers["offset"] = pageable.offset
                         exchange.message.headers["pageSize"] = pageable.pageSize
                     }
@@ -69,7 +72,9 @@ class RouteConfiguration {
                             :#offset
                     """.replace(Regex("\\s+"), " "))
                     .process { exchange ->
-                        val pageable: Pageable = exchange.message.headers["pageable"] as Pageable
+                        val pageable: Pageable = exchange.message.getHeaderFirst(Pageable::class)
+                            ?: throw IllegalArgumentException("Pageable is missing")
+
                         val total: Long = exchange.message.headers["total"] as Long
                         val results: List<Map<String, Any?>> = exchange.message.body as List<Map<String, Any?>>
 
@@ -95,8 +100,9 @@ class RouteConfiguration {
             override fun configure() {
                 from("direct://pagedMemberFromDbSimplified")
                     .process { exchange ->
-                        val pageable: Pageable = exchange.message.getBody(Pageable::class.java)
-                        exchange.message.headers["pageable"] = pageable
+                        val pageable: Pageable = exchange.message.getHeaderFirst(Pageable::class)
+                            ?: throw IllegalArgumentException("Pageable is missing")
+
                         exchange.message.headers["offset"] = pageable.offset
                         exchange.message.headers["pageSize"] = pageable.pageSize
                     }
@@ -121,7 +127,9 @@ class RouteConfiguration {
                             :#offset
                     """.trimForSql())
                     .process { exchange ->
-                        val pageable: Pageable = exchange.message.getHeader("pageable", Pageable::class.java)
+                        val pageable: Pageable = exchange.message.getHeaderFirst(Pageable::class)
+                            ?: throw IllegalArgumentException("Pageable is missing")
+
                         val total: Long = exchange.message.getHeader("total", Long::class.java)
                         val results: List<Map<String, Any?>> = exchange.message.getBody(object : TypeReference<List<Map<String, Any?>>>() {})
 

@@ -32,7 +32,7 @@ class MemberRestController(
 				else -> throw IllegalStateException("src value is unsupported")
 			},
 			DefaultExchange(camelContext).also {
-				it.message.body = pageable
+				it.message.headers["pageable"] = pageable
 			}
 		)
 
