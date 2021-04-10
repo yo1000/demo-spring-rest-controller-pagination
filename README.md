@@ -5,5 +5,9 @@
 ```
 
 ```
+# DataSource from InMemory Items
 curl localhost:8080/member?page=10
+
+# DataSource from Database
+curl localhost:8080/member?page=10&src=db
 ```
