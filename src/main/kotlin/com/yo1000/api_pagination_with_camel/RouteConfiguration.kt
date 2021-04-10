@@ -54,7 +54,7 @@ class RouteConfiguration {
                           member
                     """.replace(Regex("\\s+"), " "))
                     .process { exchange ->
-                        val results: List<Map<String, Any>> = exchange.message.body as List<Map<String, Any>>
+                        val results: List<Map<String, Long>> = exchange.message.body as List<Map<String, Long>>
                         exchange.message.headers["total"] = results.first()["TOTAL"] as Long
                     }
                     .to("""sql://
@@ -70,7 +70,7 @@ class RouteConfiguration {
                     .process { exchange ->
                         val pageable: Pageable = exchange.message.headers["pageable"] as Pageable
                         val total: Long = exchange.message.headers["total"] as Long
-                        val results: List<Map<String, Any>> = exchange.message.body as List<Map<String, Any>>
+                        val results: List<Map<String, Any?>> = exchange.message.body as List<Map<String, Any?>>
 
                         results.map {
                             Member(
