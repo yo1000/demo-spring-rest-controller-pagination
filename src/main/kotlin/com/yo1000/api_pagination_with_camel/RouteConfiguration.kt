@@ -64,9 +64,9 @@ class RouteConfiguration {
                         FROM
                           member
                         LIMIT
-                            :#offset
-                        OFFSET
                             :#pageSize
+                        OFFSET
+                            :#offset
                     """.replace(Regex("\\s+"), " "))
                     .process { exchange ->
                         val pageable: Pageable = exchange.message.headers["pageable"] as Pageable
@@ -116,9 +116,9 @@ class RouteConfiguration {
                         FROM
                           member
                         LIMIT
-                            :#offset
-                        OFFSET
                             :#pageSize
+                        OFFSET
+                            :#offset
                     """.trimForSql())
                     .process { exchange ->
                         val pageable: Pageable = exchange.message.getHeader("pageable", Pageable::class.java)
