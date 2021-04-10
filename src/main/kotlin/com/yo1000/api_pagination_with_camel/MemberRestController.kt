@@ -1,5 +1,6 @@
 package com.yo1000.api_pagination_with_camel
 
+import com.fasterxml.jackson.core.type.TypeReference
 import org.apache.camel.CamelContext
 import org.apache.camel.ProducerTemplate
 import org.apache.camel.impl.DefaultExchange
@@ -27,6 +28,7 @@ class MemberRestController(
 			when (src) {
 				"list" -> "direct://pagedMemberFromList"
 				"db" -> "direct://pagedMemberFromDb"
+				"db_simple" -> "direct://pagedMemberFromDbSimplified"
 				else -> throw IllegalStateException("src value is unsupported")
 			},
 			DefaultExchange(camelContext).also {
@@ -34,6 +36,6 @@ class MemberRestController(
 			}
 		)
 
-		return exchange.message.getBody(Page::class.java) as Page<Member>
+		return exchange.message.getBody(object : TypeReference<Page<Member>>() {})
 	}
 }
