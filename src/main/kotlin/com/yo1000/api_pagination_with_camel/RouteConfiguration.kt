@@ -2,6 +2,8 @@ package com.yo1000.api_pagination_with_camel
 
 import com.fasterxml.jackson.core.type.TypeReference
 import org.apache.camel.builder.RouteBuilder
+import org.apache.camel.builder.endpoint.StaticEndpointBuilders.direct
+import org.apache.camel.builder.endpoint.StaticEndpointBuilders.sql
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.domain.PageImpl
@@ -98,7 +100,7 @@ class RouteConfiguration {
     fun pagedMemberFromDbSimplifiedRoute(): RouteBuilder {
         return object : RouteBuilder() {
             override fun configure() {
-                from("direct://pagedMemberFromDbSimplified")
+                from(direct("pagedMemberFromDbSimplified").uri)
                     .process { exchange ->
                         val pageable: Pageable = exchange.message.getHeaderFirst(Pageable::class)
                             ?: throw IllegalArgumentException("Pageable is missing")
@@ -106,17 +108,19 @@ class RouteConfiguration {
                         exchange.message.headers["offset"] = pageable.offset
                         exchange.message.headers["pageSize"] = pageable.pageSize
                     }
-                    .to("""sql://
+                    .to(sql("""
                         SELECT
                           COUNT(name) AS total
                         FROM
                           member
-                    """.trimForSql())
+                        """.trimForSql())
+                        .allowNamedParameters(true)
+                        .uri)
                     .process { exchange ->
                         val results: List<Map<String, Long>> = exchange.message.getBody(object : TypeReference<List<Map<String, Long>>>() {})
                         exchange.message.headers["total"] = results.first()["TOTAL"]
                     }
-                    .to("""sql://
+                    .to(sql("""
                         SELECT
                           name
                         FROM
@@ -125,7 +129,9 @@ class RouteConfiguration {
                             :#pageSize
                         OFFSET
                             :#offset
-                    """.trimForSql())
+                        """.trimForSql())
+                        .allowNamedParameters(true)
+                        .uri)
                     .process { exchange ->
                         val pageable: Pageable = exchange.message.getHeaderFirst(Pageable::class)
                             ?: throw IllegalArgumentException("Pageable is missing")

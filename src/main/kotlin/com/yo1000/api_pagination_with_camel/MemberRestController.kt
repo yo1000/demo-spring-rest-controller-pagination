@@ -3,7 +3,8 @@ package com.yo1000.api_pagination_with_camel
 import com.fasterxml.jackson.core.type.TypeReference
 import org.apache.camel.CamelContext
 import org.apache.camel.ProducerTemplate
-import org.apache.camel.impl.DefaultExchange
+//import org.apache.camel.impl.DefaultExchange // Camel 2.x
+import org.apache.camel.support.DefaultExchange
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.web.bind.annotation.GetMapping

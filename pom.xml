@@ -16,6 +16,8 @@
 	<properties>
 		<java.version>11</java.version>
 		<kotlin.version>1.4.31</kotlin.version>
+		<camel-legacy.version>2.25.3</camel-legacy.version>
+		<camel.version>3.9.0</camel.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -34,20 +36,44 @@
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-commons</artifactId>
 		</dependency>
+
+		<!--
 		<dependency>
 			<groupId>org.apache.camel</groupId>
 			<artifactId>camel-spring-boot-starter</artifactId>
-			<version>2.25.3</version>
+			<version>${camel-legacy.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.camel</groupId>
 			<artifactId>camel-sql-starter</artifactId>
-			<version>2.25.3</version>
+			<version>${camel-legacy.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.camel</groupId>
 			<artifactId>camel-sql</artifactId>
-			<version>2.25.3</version>
+			<version>${camel-legacy.version}</version>
+		</dependency>
+		-->
+
+		<dependency>
+			<groupId>org.apache.camel.springboot</groupId>
+			<artifactId>camel-spring-boot-starter</artifactId>
+			<version>${camel.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.camel.springboot</groupId>
+			<artifactId>camel-sql-starter</artifactId>
+			<version>${camel.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-sql</artifactId>
+			<version>${camel.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-endpointdsl</artifactId>
+			<version>${camel.version}</version>
 		</dependency>
 
 		<dependency>
